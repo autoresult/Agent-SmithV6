@@ -40,6 +40,13 @@ import { supabase } from '@/lib/supabase'; // KEPT: Only for Realtime subscripti
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { toast } from 'sonner';
 import { Message } from '@/lib/types';
+import {
+  extractUCPData,
+  ProductCarousel,
+  ProductCard,
+  CheckoutButton,
+  UCPData,
+} from '@/components/ucp';
 
 // --- TIPOS ---
 interface Conversation {
@@ -972,6 +979,14 @@ export default function AdminConversationsPage() {
                     ? msg.content.replace(/^\[👤\s+.+?\]\n/, '')
                     : msg.content;
 
+                  // 🛒 UCP: Detectar e extrair conteúdo de comércio
+                  let ucpData: UCPData | null = null;
+                  if (!isUser && displayContent) {
+                    const extracted = extractUCPData(displayContent);
+                    displayContent = extracted.text;
+                    ucpData = extracted.data;
+                  }
+
                   // Remove textos desnecessários de mídia
                   const isMediaOnly =
                     displayContent === '📷 Imagem enviada' ||
@@ -997,11 +1012,10 @@ export default function AdminConversationsPage() {
                         </div>
                       )}
                       <div
-                        className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                          isUser
-                            ? 'bg-purple-600 text-white rounded-tr-sm'
-                            : 'bg-[#18181b] text-gray-100 border border-[#27272a] rounded-tl-sm'
-                        }`}
+                        className={`${ucpData ? 'max-w-[95%]' : 'max-w-[75%]'} rounded-2xl px-4 py-3 text-sm leading-relaxed ${isUser
+                          ? 'bg-purple-600 text-white rounded-tr-sm'
+                          : 'bg-[#18181b] text-gray-100 border border-[#27272a] rounded-tl-sm'
+                          }`}
                       >
                         {/* 🔔 Badge para identificar remetente (IA ou Admin) */}
                         {!isUser && (
@@ -1035,6 +1049,25 @@ export default function AdminConversationsPage() {
                               audioUrl={msg.audio_url!}
                               transcription={!isMediaOnly ? displayContent : undefined}
                             />
+                          </div>
+                        )}
+
+                        {/* 🛒 UCP Content - Renderização de carrossel/card/checkout */}
+                        {ucpData && (
+                          <div className="w-full mt-2">
+                            {ucpData.type === 'ucp_product_list' && (
+                              <ProductCarousel
+                                products={ucpData.products}
+                                shopDomain={ucpData.shop_domain}
+                                query={ucpData.query}
+                              />
+                            )}
+                            {ucpData.type === 'ucp_product_detail' && (
+                              <ProductCard product={ucpData.product} size="large" />
+                            )}
+                            {ucpData.type === 'ucp_checkout' && (
+                              <CheckoutButton data={ucpData} />
+                            )}
                           </div>
                         )}
 
@@ -1100,11 +1133,10 @@ export default function AdminConversationsPage() {
                       variant="ghost"
                       onClick={isRecording ? stopRecording : startRecording}
                       disabled={isUploadingMedia}
-                      className={`h-10 w-10 ${
-                        isRecording
-                          ? 'text-red-500 bg-red-500/20 hover:bg-red-500/30 animate-pulse'
-                          : 'text-gray-400 hover:text-white hover:bg-[#27272a]'
-                      }`}
+                      className={`h-10 w-10 ${isRecording
+                        ? 'text-red-500 bg-red-500/20 hover:bg-red-500/30 animate-pulse'
+                        : 'text-gray-400 hover:text-white hover:bg-[#27272a]'
+                        }`}
                       title={isRecording ? 'Parar gravação' : 'Gravar áudio'}
                     >
                       {isRecording ? <Square className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
