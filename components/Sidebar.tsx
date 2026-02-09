@@ -78,7 +78,10 @@ export function Sidebar({
         <div className="flex flex-col h-full">
           <div className="p-4 border-b border-white/30">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-white/70">Smith AI</h2>
+              <div className="flex items-center gap-2">
+                <img src="/smith-logo.png" alt="Smith Logo" className="w-7 h-7 rounded-full object-cover" />
+                <h2 className="text-sm font-semibold text-white/70">Smithv6.0</h2>
+              </div>
               <AccountMenu />
             </div>
             <button
