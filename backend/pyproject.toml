@@ -22,3 +22,6 @@ quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.uvicorn]
+reload-exclude = ["venv/*", ".venv/*", "node_modules/*", "__pycache__/*"]
