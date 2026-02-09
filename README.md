@@ -154,6 +154,13 @@ flowchart TB
 
 ## 🗄️ Configuração Local
 
+### 1. Clone o Repositório
+
+```bash
+git clone https://github.com/LionLabsCommunity/Agent-SmithV6.git
+cd Agent-SmithV6
+```
+
 ### 2. Configure o Banco de Dados (Supabase)
 
 > [!WARNING]
@@ -213,12 +220,7 @@ No Supabase Dashboard, vá em **Settings → API** e copie:
 
 #### 3.1 — Backend (.env)
 
-```bash
-cd backend
-cp .env.example .env
-```
-
-Edite o `.env` com suas credenciais:
+Crie um arquivo `.env` dentro da pasta `backend/` do projeto com as seguintes variáveis:
 
 ```env
 # =============================================
@@ -344,12 +346,7 @@ DRY_RUN=False
 
 #### 3.2 — Frontend (.env.local)
 
-```bash
-cd ..  # Volte para a raiz
-cp .env.example .env.local
-```
-
-Edite o `.env.local`:
+Crie um arquivo `.env.local` na raiz do projeto com as seguintes variáveis:
 
 ```env
 # =============================================
@@ -503,27 +500,67 @@ npm run dev
 | MinIO Console | http://localhost:9001 |
 | Qdrant Dashboard | http://localhost:6333/dashboard |
 
-### 💳 Adicionar Créditos Manualmente
+### 💳 Adicionar Créditos e Plano Manualmente
 
-O sistema de billing funciona sem necessidade de assinatura Stripe. Basta que a empresa tenha saldo positivo na tabela `company_credits`. Para adicionar créditos manualmente, execute a seguinte query no **SQL Editor do Supabase**:
+Para utilizar a plataforma localmente sem integração com Stripe, siga os passos abaixo:
 
-> [!WARNING]
-> Substitua `SEU_COMPANY_ID_AQUI` pelo ID real da sua empresa. Você pode encontrá-lo na tabela `companies` do Supabase (coluna `id`).
+#### Passo 1 — Crie um Plano de Teste
+
+1. Acesse o painel admin em `http://localhost:3000/admin/login`
+2. Faça login com o admin master criado no passo 6
+3. Navegue até **FinOps → Planos** (`/admin/finops/plans`)
+4. Clique em **Novo Plano** e preencha com dados de teste (ex: nome "Teste", preço R$ 0,00)
+5. Salve o plano
+
+#### Passo 2 — Registre uma Empresa
+
+1. Acesse `http://localhost:3000/register`
+2. Preencha o formulário de cadastro (nome, email, senha, nome da empresa)
+3. Conclua o registro — isso cria automaticamente uma **empresa** e um **usuário** vinculado
+
+#### Passo 3 — Obtenha os IDs
+
+No **SQL Editor do Supabase**, execute:
 
 ```sql
--- Adiciona R$ 10,00 de créditos (ou soma ao saldo existente)
-INSERT INTO company_credits (company_id, balance_brl, updated_at)
-VALUES ('SEU_COMPANY_ID_AQUI', 10.00, NOW())
-ON CONFLICT (company_id)
-DO UPDATE SET 
-    balance_brl = company_credits.balance_brl + 10.00,
-    updated_at = NOW();
+SELECT id, name FROM plans;
+SELECT id, name FROM companies;
 ```
 
-Você pode alterar o valor `10.00` para qualquer quantia desejada. O saldo será consumido automaticamente conforme o uso dos agentes (cada chamada de LLM debita o custo proporcional em tokens).
+Copie o `id` do plano criado e o `id` da empresa registrada.
+
+#### Passo 4 — Insira Créditos e Ative o Plano
+
+Substitua os IDs copiados nos campos abaixo e execute no SQL Editor:
+
+```sql
+-- 1. Adiciona R$ 100,00 de créditos
+INSERT INTO company_credits (company_id, balance_brl, updated_at)
+VALUES ('SEU_COMPANY_ID_AQUI', 100.00, NOW())
+ON CONFLICT (company_id)
+DO UPDATE SET 
+    balance_brl = company_credits.balance_brl + 100.00,
+    updated_at = NOW();
+
+-- 2. Cria uma subscription ativa (necessário para desbloquear o menu)
+INSERT INTO subscriptions (company_id, plan_id, status, current_period_start, current_period_end)
+VALUES (
+    'SEU_COMPANY_ID_AQUI',
+    'SEU_PLAN_ID_AQUI',
+    'active',
+    NOW(),
+    NOW() + INTERVAL '1 year'
+)
+ON CONFLICT (company_id)
+DO UPDATE SET 
+    status = 'active',
+    plan_id = EXCLUDED.plan_id,
+    current_period_end = NOW() + INTERVAL '1 year',
+    cancel_at = NULL;
+```
 
 > [!NOTE]
-> Não é necessário criar uma assinatura (`subscriptions`) para o sistema funcionar. O agente responde normalmente desde que `balance_brl > 0`.
+> Após executar, faça **logout e login** novamente para a sessão carregar os dados atualizados.
 
 ---
 
