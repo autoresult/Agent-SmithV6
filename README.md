@@ -325,7 +325,7 @@ ADMIN_API_KEY=xxxxxxxx
 # =============================================
 GOOGLE_OAUTH_CLIENT_ID=xxxxxxxx.apps.googleusercontent.com
 GOOGLE_OAUTH_CLIENT_SECRET=xxxxxxxx
-MCP_OAUTH_REDIRECT_BASE=http://localhost:3000
+MCP_OAUTH_REDIRECT_BASE=http://localhost:8000
 
 # =============================================
 # OPCIONAL - Outros LLM Providers
