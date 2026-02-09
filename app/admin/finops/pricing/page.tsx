@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { RefreshCw, Search, Edit2, Check, X, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -239,9 +239,9 @@ export default function PricingPage() {
             </thead>
             <tbody className="divide-y divide-[#2D2D2D]">
               {Object.entries(groupedPricing).map(([provider, items]) => (
-                <>
+                <Fragment key={provider}>
                   {/* Provider Header */}
-                  <tr key={`header-${provider}`} className="bg-[#0A0A0A]/50">
+                  <tr className="bg-[#0A0A0A]/50">
                     <td colSpan={6} className="px-6 py-3">
                       <span className="text-lg font-semibold text-white">
                         {PROVIDER_ICONS[provider]}{' '}
@@ -364,7 +364,7 @@ export default function PricingPage() {
                       </td>
                     </tr>
                   ))}
-                </>
+                </Fragment>
               ))}
 
               {filteredPricing.length === 0 && (
