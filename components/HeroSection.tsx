@@ -208,7 +208,7 @@ export const HeroSection: React.FC = () => {
             whileTap={{ scale: 0.95 }}
             className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6 transition-all duration-300 group"
           >
-            <span>Agent Smith v1.1</span>
+            <span>Agent Smith v6.0</span>
             <svg
               width="16"
               height="16"
