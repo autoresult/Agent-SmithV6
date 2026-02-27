@@ -19,7 +19,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from ..core.config import settings
 from ..core.database import get_supabase_client
-from .minio_service import get_minio_service
+from .storage import get_storage_service
 from .qdrant_service import get_qdrant_service
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class IngestionService:
     def __init__(self):
-        self.minio = get_minio_service()
+        self.storage = get_storage_service()
         self.qdrant = get_qdrant_service()
         self.supabase = get_supabase_client().client
 
@@ -68,15 +68,15 @@ class IngestionService:
                 f"🚀 Processing {document_id} with {strategy} for agent {agent_id}"
             )
 
-            # Buscar JSON Raw do MinIO
+            # Buscar JSON Raw do Object Storage
             raw_path = f"{company_id}/raw/{document_id}.json"
             try:
-                file_data = self.minio.download_file(raw_path)
+                file_data = self.storage.download_file(raw_path)
                 raw_data = json.load(file_data)
             except Exception:
                 # Tenta caminho antigo
                 raw_path = f"companies/{company_id}/raw/{document_id}.json"
-                file_data = self.minio.download_file(raw_path)
+                file_data = self.storage.download_file(raw_path)
                 raw_data = json.load(file_data)
 
             text_content = raw_data.get("text_content", "")

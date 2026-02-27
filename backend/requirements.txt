@@ -37,7 +37,13 @@ langgraph-checkpoint-postgres>=2.0.0
 qdrant-client>=1.11.0
 
 # Object Storage
-minio==7.2.3
+boto3>=1.35.0          # SeaweedFS (via S3-compatible API) - provider padrão
+minio==7.2.3           # MinIO SDK - mantido para rollback via STORAGE_PROVIDER=minio
+
+# Testing
+pytest>=8.0.0
+pytest-mock>=3.12.0
+moto[s3]>=5.0.0        # Mock S3/boto3 para testes unitários
 
 # Document Processing
 PyPDF2==3.0.1

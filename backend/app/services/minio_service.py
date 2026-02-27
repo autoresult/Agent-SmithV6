@@ -177,6 +177,31 @@ class MinioService:
             logger.error(f"Erro ao deletar pasta: {e}")
             return False
 
+    def upload_object(
+        self,
+        object_name: str,
+        data: BinaryIO,
+        length: int,
+        content_type: str = "application/octet-stream",
+    ) -> None:
+        """
+        Armazena bytes em caminho arbitrário (sem estrutura company/document).
+        Usado para JSON raw, manifests e outros objetos internos.
+        """
+        try:
+            self.client.put_object(
+                bucket_name=self.bucket_name,
+                object_name=object_name,
+                data=data,
+                length=length,
+                content_type=content_type,
+            )
+            logger.info(f"Objeto armazenado com sucesso: {object_name} ({length} bytes)")
+
+        except S3Error as e:
+            logger.error(f"Erro ao armazenar objeto: {e}")
+            raise
+
     def get_file_url(self, object_name: str, expires: int = 3600) -> str:
         """
         Gerar URL pré-assinada para download (válida por 1 hora)

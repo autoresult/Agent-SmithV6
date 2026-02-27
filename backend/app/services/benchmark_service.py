@@ -26,7 +26,7 @@ from ..core.config import settings
 from ..core.database import get_supabase_client
 from ..core.redis import get_redis_client
 from .ingestion_service import get_ingestion_service
-from .minio_service import get_minio_service
+from .storage import get_storage_service
 from .qdrant_service import get_qdrant_service
 from .rerank_service import get_rerank_service
 
@@ -40,7 +40,7 @@ class BenchmarkService:
     """
 
     def __init__(self):
-        self.minio = get_minio_service()
+        self.storage = get_storage_service()
         self.qdrant = get_qdrant_service()
         self.ingestion = get_ingestion_service()
         self.reranker = get_rerank_service()
@@ -637,16 +637,16 @@ Responda APENAS com o número (1, 2, 3, 4 ou 5), nada mais."""
     def _load_document(
         self, document_id: str, company_id: str
     ) -> Tuple[str, Dict, str]:
-        """Carrega documento do MinIO."""
+        """Carrega documento do Object Storage."""
         # Tentar caminho novo
         raw_path = f"{company_id}/raw/{document_id}.json"
         try:
-            file_data = self.minio.download_file(raw_path)
+            file_data = self.storage.download_file(raw_path)
             raw_data = json.load(file_data)
         except Exception:
             # Fallback para caminho antigo
             raw_path = f"companies/{company_id}/raw/{document_id}.json"
-            file_data = self.minio.download_file(raw_path)
+            file_data = self.storage.download_file(raw_path)
             raw_data = json.load(file_data)
 
         # Extrair texto

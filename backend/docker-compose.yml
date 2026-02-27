@@ -1,34 +1,51 @@
 version: '3.8'
 
 services:
-  # MinIO - Object Storage para PDFs, DOCXs, TXTs
-  minio:
-    image: minio/minio:latest
-    container_name: agent-smith-minio
+  # SeaweedFS - Object Storage para PDFs, DOCXs, TXTs, JSONs
+  # Substitui MinIO (que removeu admin e parou imagens oficiais em out/2025)
+  # Modo: server -s3 inicia master + volume + filer + S3 API em um único processo
+  # Admin UI (weed admin): http://localhost:23646
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: agent-smith-seaweedfs
+    command: server -s3 -s3.port=8333 -filer -dir=/data
     ports:
-      - "9000:9000"  # API
-      - "9001:9001"  # Console
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
+      - "9333:9333"   # Master HTTP
+      - "8080:8080"   # Volume HTTP
+      - "8888:8888"   # Filer HTTP
+      - "8333:8333"   # S3 API (equivalente ao 9000 do MinIO)
     volumes:
-      - minio_data:/data
-    command: server /data --console-address ":9001"
+      - seaweedfs_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD-SHELL", "curl -f http://localhost:9333/cluster/status || exit 1"]
       interval: 30s
       timeout: 20s
-      retries: 3
+      retries: 5
+      start_period: 15s
     networks:
       - agent-smith-network
 
-  # Qdrant - Vector Database para embeddings
+  # SeaweedFS Admin UI (weed admin) - porta 19333 é gRPC do master, NÃO é a UI
+  # Admin UI real roda em porta separada via 'weed admin'
+  seaweedfs-admin:
+    image: chrislusf/seaweedfs:latest
+    container_name: agent-smith-seaweedfs-admin
+    command: admin -filer=seaweedfs:8888
+    ports:
+      - "23646:23646"   # Admin UI web
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    networks:
+      - agent-smith-network
+
+  # Qdrant - Vector Database para embeddings  
   qdrant:
-    image: qdrant/qdrant:v1.11.3
+    image: qdrant/qdrant:v1.17.0
     container_name: agent-smith-qdrant
     ports:
       - "6333:6333"  # HTTP API
-      - "6334:6334"  # gRPC (opcional)
+      - "6334:6334"  # gRPC
     volumes:
       - qdrant_data:/qdrant/storage
     environment:
@@ -44,7 +61,7 @@ services:
 
   # Redis - Message Buffer para WhatsApp
   redis:
-    image: redis:7-alpine
+    image: redis:8.6.1-alpine
     container_name: agent-smith-redis
     ports:
       - "6379:6379"
@@ -61,7 +78,7 @@ services:
       - agent-smith-network
 
 volumes:
-  minio_data:
+  seaweedfs_data:
     driver: local
   qdrant_data:
     driver: local

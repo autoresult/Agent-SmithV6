@@ -17,7 +17,7 @@ from docx import Document as DocxDocument
 from ..core.database import get_supabase_client
 
 # Services
-from .minio_service import get_minio_service
+from .storage import get_storage_service
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class DocumentService:
     """
 
     def __init__(self):
-        self.minio = get_minio_service()
+        self.storage = get_storage_service()
         self.supabase = get_supabase_client().client
 
     def upload_document(
@@ -63,8 +63,8 @@ class DocumentService:
             file_content = file_data.read()
             file_bytes = BytesIO(file_content)
 
-            # Upload do Arquivo Original para MinIO
-            minio_path = self.minio.upload_file(
+            # Upload do Arquivo Original para Object Storage
+            minio_path = self.storage.upload_file(
                 file_data=BytesIO(file_content),
                 company_id=company_id,
                 document_id=document_id,
@@ -94,12 +94,11 @@ class DocumentService:
 
             try:
                 raw_object_name = f"{company_id}/raw/{document_id}.json"
-                self.minio.client.put_object(
-                    "documents",
+                self.storage.upload_object(
                     raw_object_name,
                     json_bytes,
-                    length=json_bytes.getbuffer().nbytes,
-                    content_type="application/json",
+                    json_bytes.getbuffer().nbytes,
+                    "application/json",
                 )
                 logger.info(
                     f"JSON Raw salvo em: {raw_object_name} com {len(pages)} páginas"
@@ -168,7 +167,7 @@ class DocumentService:
                 company_id = doc["company_id"]
                 raw_path = f"{company_id}/raw/{document_id}.json"
                 try:
-                    data = self.minio.download_file(raw_path)
+                    data = self.storage.download_file(raw_path)
                     json_data = json.load(data)
                     return json_data.get("text_content", "")
                 except Exception:
@@ -332,8 +331,8 @@ class DocumentService:
 
             company_id = doc["company_id"]
 
-            # Deletar do MinIO
-            self.minio.delete_folder(company_id, document_id)
+            # Deletar do Object Storage
+            self.storage.delete_folder(company_id, document_id)
 
             # Deletar do banco
             self.supabase.table("documents").delete().eq("id", document_id).execute()

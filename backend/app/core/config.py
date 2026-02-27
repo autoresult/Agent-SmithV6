@@ -37,10 +37,21 @@ class Settings(BaseSettings):
     # Encryption Key para API keys das empresas
     ENCRYPTION_KEY: str
 
-    # MinIO Configuration
+    # Storage Provider (factory pattern)
+    # Valores aceitos: "seaweedfs" (padrão) | "minio"
+    STORAGE_PROVIDER: str = "seaweedfs"
+
+    # SeaweedFS Configuration (provider padrão)
+    SEAWEEDFS_ENDPOINT: str = "localhost:8333"
+    SEAWEEDFS_ACCESS_KEY: str = "seaweedfsadmin"
+    SEAWEEDFS_SECRET_KEY: str = "seaweedfsadmin"
+    SEAWEEDFS_SECURE: bool = False
+    SEAWEEDFS_BUCKET: str = "documents"
+
+    # MinIO Configuration (mantido para rollback via STORAGE_PROVIDER=minio)
     MINIO_ENDPOINT: str = "localhost:9000"
-    MINIO_ROOT_USER: str  # Required in .env
-    MINIO_ROOT_PASSWORD: str  # Required in .env
+    MINIO_ROOT_USER: str = "minioadmin"  # Required when STORAGE_PROVIDER=minio
+    MINIO_ROOT_PASSWORD: str = "minioadmin123"  # Required when STORAGE_PROVIDER=minio
     MINIO_SECURE: bool = False
     MINIO_BUCKET: str = "documents"
 

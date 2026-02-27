@@ -13,6 +13,7 @@ from .langchain_service import (
     get_supported_providers,
 )
 from .minio_service import MinioService, get_minio_service
+from .storage import StorageProvider, get_storage_service
 from .qdrant_service import QdrantService, get_qdrant_service
 from .rerank_service import RerankService
 from .search_service import SearchService
@@ -35,6 +36,8 @@ __all__ = [
     "get_qdrant_service",
     "get_document_service",
     "get_minio_service",
+    "get_storage_service",
+    "StorageProvider",
     "get_encryption_service",
     "get_supported_providers",
     "get_models_for_provider",
