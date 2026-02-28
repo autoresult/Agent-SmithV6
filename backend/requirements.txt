@@ -43,7 +43,15 @@ minio==7.2.3           # MinIO SDK - mantido para rollback via STORAGE_PROVIDER=
 # Testing
 pytest>=8.0.0
 pytest-mock>=3.12.0
+pytest-asyncio>=0.24.0
+pytest-cov>=6.0.0
 moto[s3]>=5.0.0        # Mock S3/boto3 para testes unitários
+testcontainers[postgres,redis,minio,qdrant]>=4.9.0
+factory-boy>=3.3.0
+hypothesis>=6.100.0
+freezegun>=1.4.0
+respx>=0.22.0
+coverage[toml]>=7.6.0
 
 # Document Processing
 PyPDF2==3.0.1

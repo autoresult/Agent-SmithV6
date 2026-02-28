@@ -28,6 +28,34 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 python_classes = ["Test*"]
+asyncio_mode = "auto"
+markers = [
+    "unit: Testes unitários com mocks (sem Docker)",
+    "integration: Testes com Testcontainers (requer Docker)",
+    "e2e: Testes end-to-end (requer Docker + app completo)",
+    "slow: Testes lentos (>5s)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["app"]
+branch = true
+omit = [
+    "app/__pycache__/*",
+    "app/main.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__",
+    "if TYPE_CHECKING",
+    "raise NotImplementedError",
+]
 
 [tool.uvicorn]
 reload-exclude = ["venv/*", ".venv/*", "node_modules/*", "__pycache__/*"]
